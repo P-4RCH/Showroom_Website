@@ -5,10 +5,10 @@ const bodyParser = require('body-parser');
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'your_pg_username',
-  host: 'localhost',
-  database: 'your_pg_database_name',
-  password: 'your_pg_password',
+  user: 'products_xkb3_user',
+  host: 'dpg-cps3iv08fa8c7390qqr0-a',
+  database: 'products_xkb3',
+  password: 'p1aatHO7lWQTCpqD4orzy4ilBUtlhave',
   port: 5432, // Default PostgreSQL port
 });
 
