@@ -1,19 +1,19 @@
 // index.js
 
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const Product = require('./models/Product');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: 'your_pg_username',
+  host: 'localhost',
+  database: 'your_pg_database_name',
+  password: 'your_pg_password',
+  port: 5432, // Default PostgreSQL port
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/productShowroom', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-});
 
 // Body parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -27,7 +27,10 @@ app.use(express.static('public'));
 // Routes
 app.get('/', async (req, res) => {
   try {
-    const products = await Product.find();
+    const client = await pool.connect();
+    const result = await client.query('SELECT * FROM products');
+    const products = result.rows;
+    client.release();
     res.render('index', { products });
   } catch (err) {
     console.error(err);
@@ -42,8 +45,10 @@ app.get('/add-product', (req, res) => {
 app.post('/add-product', async (req, res) => {
   try {
     const { name, description, price } = req.body;
-    const newProduct = new Product({ name, description, price });
-    await newProduct.save();
+    const client = await pool.connect();
+    const queryText = 'INSERT INTO products(name, description, price) VALUES($1, $2, $3)';
+    await client.query(queryText, [name, description, price]);
+    client.release();
     res.redirect('/');
   } catch (err) {
     console.error(err);
@@ -55,3 +60,4 @@ app.post('/add-product', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
